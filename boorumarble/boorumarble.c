@@ -6,6 +6,10 @@ typedef struct diceResult {
 	int dice1;
 	int dice2;
 }diceResult;
+typedef struct player {
+	int location;
+	int money;
+}player;
 typedef struct city {
 	char name[20];
 	int landPrice;
@@ -13,14 +17,10 @@ typedef struct city {
 	int hotelPrice;
 	int buildingPrice;
 	int totalPrice;
-	int owner;
+	player owner;
 	int class;//1: 도시, 2: 관광지, 3: 열쇠, 4: 무인도, 5: 콩코드, 6:엘리자베스 , 7: 콜롬비아호 8: 복지기금 수령, 9 복지기금 기부, 우주여행 10
 }city;
-typedef struct player {
-	int location;
-	int money;
 
-}player;
 
 int boad_size = 20;
 city boad[40]= {//도시명, 땅값, 모텔, 호텔, 빌딩 건축비, 총 금액, 지주, 범주; 통행료는 건축비*2로 통일
@@ -34,13 +34,17 @@ int Total_player;
 void slash();
 void title();
 diceResult dice();
-void changeOwner(city *city, int owner);
+void changeOwner(city *city, player owner);
 void changeMoney(player *player, int delta);
 void changeTotalPrice(city* city, int price);
 
 void turn(player* player);
 void move(player* player, diceResult dice);
 void reset();
+void buy(city* city,player* player);
+void PayToll(player* player);
+void Build(player* player);
+void key(player* player);
 int main() {
 	
 	title();
@@ -74,7 +78,8 @@ diceResult dice() {
 	new.dice2 = rand() % 6 + 1;
 	return new;
 }
-void changeOwner(city* city, int owner)
+//구조가 같은 함수가 세 개나 있는데 이렇게 만드는게 좋은 건지 모르겠다.
+void changeOwner(city* city, player owner)
 {
 	city->owner = owner;
 }
@@ -86,23 +91,69 @@ void changeMoney(player* player, int delta)
 void changeTotalPrice(city* city, int price)
 {
 	city->totalPrice += price;
-
+	 
 }
 void turn(player *player)
 {
 	diceResult new;
-	printf("주사위를 던집니다\n");
-	getchar();
-	new = dice();
-	move(player, new);
-	printf("%s에 도착했습니다\n", boad[player->location].name);
+	while (1) {
+		city location;
+		printf("주사위를 던집니다\n");
+		getchar();
+		new = dice();
+		move(player, new);
+		location = boad[player->location];
+		printf("%s에 도착했습니다\n",location.name);
+		if (&location.owner == 0) {
+			if (location.class == 3)
+				key(player);
+			else
+				buy(&boad[player->location], player);
+		}
+		else if (&boad[player->location].owner != player) {
+			PayToll(player);
+		}
+		else {
+			Build(player);
+		}
+		if (new.dice1 != new.dice2)
+			break;
+		printf("더블이 나왔습니다. 한번 더 던집니다\n");
+	}
+
 }
-void move(player *player,diceResult dice) {
+void move(player *player,diceResult dice) {  
 	int count = dice.dice1 + dice.dice2;
-	printf("%d가 나왔습니다\n",count);
+	printf("%d %d가 나왔습니다. %d칸 이동합니다.\n",dice.dice1,dice.dice2,count);
 	player->location = (player->location + count) % boad_size;
 }
 void reset() {
 
 
+}
+
+void buy(city* city, player* player)
+{
+	int inp;
+	printf("땅을 구입하시겠습니까?");
+
+	switch (scanf("%d", &inp)) {
+		case 1:
+			
+		default:
+			break;
+
+	}
+
+}
+void key(player* player) {
+
+}
+
+void PayToll(player* player)
+{
+}
+
+void Build(player* player)
+{
 }
